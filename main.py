@@ -8,7 +8,12 @@ SPEED = 2
 GRAVITY = 0.2
 JUMP_HEIGHT = 4
 
+SPACE_RANGE = [20, 120]
+WIDTH_RANGE = [100, 200]
+
 CLOCK = pygame.time.Clock()
+    
+SCORE = 0
     
 screen = None
     
@@ -23,15 +28,13 @@ class Player:
         self.gravity = 0
         self.floor = floor
         
-        self.image = pygame.Surface([width, height])
-        self.image.fill(colour)
-        self.image.set_colorkey(colour)
+        self.animations = [pygame.image.load("assets/running_1.png"), pygame.image.load("assets/running_2.png")]
         
-        pygame.draw.rect(self.image, colour, [0, 0, width, height])
-        
+        self.image = self.animations[0]
         self.rect = self.image.get_rect()
         
         self.jumping = False
+        self.timer = pygame.time.get_ticks()
         
     def update(self):
         self.jumping = self.gravity > 0
@@ -43,9 +46,17 @@ class Player:
             
         self.rect.y -= self.gravity
         
-    def draw(self, surface):
-        pygame.draw.rect(surface, self.colour, self.rect)
+        if pygame.time.get_ticks() - self.timer > 500:
+            self.timer = pygame.time.get_ticks()
+            
+            if self.image == self.animations[0]:
+                self.image = self.animations[1]
+            else:
+                self.image = self.animations[0]
         
+    def draw(self, surface):
+        surface.blit(self.image, self.rect)
+
     def jump(self):
         if self.floor.colliding(self):
             self.gravity = JUMP_HEIGHT
@@ -107,9 +118,9 @@ class Floor:
         
         if len(self.blocks) > 0:
             block = self.blocks[len(self.blocks) - 1]
-            x = block.x + block.width + random.randint(20, 70)
+            x = block.x + block.width + random.randint(SPACE_RANGE[0], SPACE_RANGE[1])
         
-        self.blocks.append(Block(self, x, self.y, random.randint(100, 200), 30))
+        self.blocks.append(Block(self, x, self.y, random.randint(WIDTH_RANGE[0], WIDTH_RANGE[1]), 30))
 
     def colliding(self, player):
         for block in self.blocks:
@@ -118,13 +129,33 @@ class Floor:
                
         return False
     
+def increase_list(li, a):
+    for i in range(len(li)):
+        li[i] += a
+
+font = None
+
+def text(surface, text, x, y, colour):
+    global font
+    surface.blit(font.render(text, True, colour), (x, y))
+    
+def text_width(text):
+    global font
+    return font.size(text)[0]
+    
+def text_height(text):
+    global font
+    return font.size(text)[1]
+    
 def main():
-    global SPEED
+    global SPEED, SPACE_RANGE, WIDTH_RANGE, font, SCORE
     
     pygame.init()
     
     screen = pygame.display.set_mode(SCREEN_DIM)
     pygame.display.set_caption("Subway Surfers")
+
+    font = pygame.font.SysFont(None, 24)
     
     floor = Floor(SCREEN_HEIGHT - 30, SCREEN_WIDTH)
     floor.blocks.append(Block(floor, 0, SCREEN_HEIGHT - 30, 250, 30))
@@ -139,29 +170,49 @@ def main():
     
     lastMillis = pygame.time.get_ticks()
     
+    alive = True
+        
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
                 
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+            elif alive and event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 player.jump()
                 
-        screen.fill((0, 0, 0))
+        screen.fill((17, 128, 255))
         
-        if player.rect.y + player.rect.height <= SCREEN_HEIGHT - 28:
-            floor.update()
+        if alive:
+            if player.rect.y + player.rect.height <= SCREEN_HEIGHT - 28:
+                floor.update()
             
         floor.draw(screen)
                 
-        for sprite in sprites:
-            sprite.update()
+        if alive:
+            for sprite in sprites:
+                sprite.update()
+                
+            if player.rect.y > SCREEN_HEIGHT:
+                alive = False
                 
         for sprite in sprites: 
             sprite.draw(screen)
-                
-        if pygame.time.get_ticks() - lastMillis >= 1000:
+            
+        if not alive:
+            text(screen, f"You survived {SCORE} seconds!", SCREEN_WIDTH / 2 - (text_width(f"You survived {SCORE} seconds!") / 2), SCREEN_HEIGHT / 2 - (text_height(f"You survived {SCORE} seconds!") / 2), (255, 255, 255))
+        
+        # debug
+        text(screen, f"Sco: {SCORE}", 5, 5, (255, 255, 255))
+        text(screen, f"Spd: {SPEED}", 5, 25, (255, 255, 255))
+        text(screen, f"Gra: {GRAVITY}", 5, 45, (255, 255, 255))
+        
+        if alive and pygame.time.get_ticks() - lastMillis >= 1000:
+            SCORE += 1
+            
             SPEED += 0.1
+            increase_list(SPACE_RANGE, 3)
+            increase_list(WIDTH_RANGE, 3)
+            
             lastMillis = pygame.time.get_ticks()
                 
         CLOCK.tick(60)
