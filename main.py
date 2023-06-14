@@ -177,7 +177,7 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
                 
-            elif alive and event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+            elif alive and event.type == pygame.KEYDOWN and (event.key == pygame.K_SPACE or event.key == pygame.K_UP):
                 player.jump()
                 
         screen.fill((17, 128, 255))
