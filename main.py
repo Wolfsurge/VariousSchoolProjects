@@ -34,6 +34,8 @@ class Player:
         self.rect = self.image.get_rect()
         
         self.jumping = False
+        self.ducking = False
+        
         self.timer = pygame.time.get_ticks()
         
     def update(self):
@@ -55,11 +57,25 @@ class Player:
                 self.image = self.animations[0]
         
     def draw(self, surface):
+        rect = self.rect
+        
+        if self.ducking:
+            rect = (0, 0, 32, 32)
+            print("quack")
+        
         surface.blit(self.image, self.rect)
 
     def jump(self):
         if self.floor.colliding(self):
             self.gravity = JUMP_HEIGHT
+            
+    def fall(self):
+        self.ducking = False
+        
+        if not self.floor.colliding(self):
+            self.gravity = JUMP_HEIGHT * -1
+        else:
+            self.ducking = True
 
 class Block:
     def __init__(self, floor, x, y, width, height):
@@ -177,13 +193,17 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
                 
-            elif alive and event.type == pygame.KEYDOWN and (event.key == pygame.K_SPACE or event.key == pygame.K_UP):
-                player.jump()
+            elif alive and event.type == pygame.KEYDOWN:
+                if (event.key == pygame.K_SPACE or event.key == pygame.K_UP):
+                    player.jump()
+                elif event.key == pygame.K_DOWN and not player.floor.colliding(player):
+                    player.fall()
                 
+              
         screen.fill((17, 128, 255))
         
         if alive:
-            if player.rect.y + player.rect.height <= SCREEN_HEIGHT - 28:
+            if player.rect.y + player.rect.height <= SCREEN_HEIGHT - 25:
                 floor.update()
             
         floor.draw(screen)
