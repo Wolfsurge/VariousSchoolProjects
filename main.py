@@ -58,24 +58,20 @@ class Player:
         
     def draw(self, surface):
         rect = self.rect
-        
+                 
         if self.ducking:
-            rect = (0, 0, 32, 32)
+            rect = (0, 0, 51, 32)
             print("quack")
         
-        surface.blit(self.image, self.rect)
+        surface.blit(self.image, rect)
 
     def jump(self):
         if self.floor.colliding(self):
             self.gravity = JUMP_HEIGHT
             
-    def fall(self):
-        self.ducking = False
-        
+    def fall(self):  
         if not self.floor.colliding(self):
             self.gravity = JUMP_HEIGHT * -1
-        else:
-            self.ducking = True
 
 class Block:
     def __init__(self, floor, x, y, width, height):
@@ -192,18 +188,27 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+               
+            keys = pygame.key.get_pressed()
+               
+            if (keys[pygame.K_SPACE] or keys[pygame.K_UP]):
+                player.jump()
                 
-            elif alive and event.type == pygame.KEYDOWN:
-                if (event.key == pygame.K_SPACE or event.key == pygame.K_UP):
-                    player.jump()
-                elif event.key == pygame.K_DOWN and not player.floor.colliding(player):
-                    player.fall()
+            elif keys[pygame.K_DOWN] and not player.floor.colliding(player):
+                player.fall()
+                ducking = False
                 
+        keys = pygame.key.get_pressed()   
+              
+        if keys[pygame.K_DOWN] and player.floor.colliding(player):
+            ducking = True         
+        else:
+            ducking = False
               
         screen.fill((17, 128, 255))
         
         if alive:
-            if player.rect.y + player.rect.height <= SCREEN_HEIGHT - 25:
+            if player.rect.y + player.rect.height <= SCREEN_HEIGHT - 23:
                 floor.update()
             
         floor.draw(screen)
@@ -214,7 +219,9 @@ def main():
                 
             if player.rect.y > SCREEN_HEIGHT:
                 alive = False
-                
+        
+        print(player.ducking)
+        
         for sprite in sprites: 
             sprite.draw(screen)
             
