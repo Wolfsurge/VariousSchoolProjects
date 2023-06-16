@@ -163,6 +163,17 @@ def text_height(text):
     
 def main():
     global SPEED, SPACE_RANGE, WIDTH_RANGE, font, SCORE
+    def startup():
+        global score
+        score = 0
+
+        for sprite in sprites_list:
+            sprite.kill()
+
+        player.rect.x = 50
+        player.rect.y = 250
+        
+        alive = True
     
     pygame.init()
     
@@ -193,16 +204,16 @@ def main():
                
             keys = pygame.key.get_pressed()
                
-            if (keys[pygame.K_SPACE] or keys[pygame.K_UP]):
+            if (keys[pygame.K_SPACE] or keys[pygame.K_UP]) and alive:
                 player.jump()
                 
-            elif keys[pygame.K_DOWN] and not player.floor.colliding(player):
+            elif keys[pygame.K_DOWN] and not player.floor.colliding(player) and alive:
                 player.fall()
                 player.ducking = False
                 
         keys = pygame.key.get_pressed()   
               
-        if keys[pygame.K_DOWN] and player.floor.colliding(player):
+        if keys[pygame.K_DOWN] and player.floor.colliding(player) and alive:
             player.ducking = True         
         else:
             player.ducking = False
