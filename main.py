@@ -60,14 +60,16 @@ class Player:
         rect = self.rect
                  
         if self.ducking:
-            rect = (0, 0, 51, 32)
-            print("quack")
+            rect = (self.rect.x, self.rect.y + 32, 51, 32)
+            self.image = pygame.image.load("assets/running_3.png")
+            
         
         surface.blit(self.image, rect)
 
     def jump(self):
         if self.floor.colliding(self):
             self.gravity = JUMP_HEIGHT
+            self.ducking = False
             
     def fall(self):  
         if not self.floor.colliding(self):
@@ -196,14 +198,14 @@ def main():
                 
             elif keys[pygame.K_DOWN] and not player.floor.colliding(player):
                 player.fall()
-                ducking = False
+                player.ducking = False
                 
         keys = pygame.key.get_pressed()   
               
         if keys[pygame.K_DOWN] and player.floor.colliding(player):
-            ducking = True         
+            player.ducking = True         
         else:
-            ducking = False
+            player.ducking = False
               
         screen.fill((17, 128, 255))
         
@@ -219,8 +221,6 @@ def main():
                 
             if player.rect.y > SCREEN_HEIGHT:
                 alive = False
-        
-        print(player.ducking)
         
         for sprite in sprites: 
             sprite.draw(screen)
