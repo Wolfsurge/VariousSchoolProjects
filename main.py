@@ -16,7 +16,6 @@ SPACE_RANGE = [20, 120]
 WIDTH_RANGE = [100, 200]
 
 
-
 CLOCK = pygame.time.Clock()
     
 SCORE = 0
@@ -82,9 +81,6 @@ class Player:
     def fall(self):  
         if not self.floor.colliding(self):
             self.gravity = JUMP_HEIGHT * -1
-    
-
-
 
 class Block:
     def __init__(self, floor, x, y, width, height):
@@ -191,8 +187,6 @@ def increase_list(li, a):
     for i in range(len(li)):
         li[i] += a
 
-
-
 def text(surface, text, x, y, colour):
     global font
     surface.blit(font.render(text, True, colour), (x, y))
@@ -215,9 +209,12 @@ player.rect.y = SCREEN_HEIGHT / 2
     
 def startup():
     global SCORE
+
+    sprites.append(player)
+
     SCORE = 0
     player.gravity = 0
-    
+    floor.speed = 2
 
     floor.blocks.append(Block(floor, 0, SCREEN_HEIGHT - 30, 250, 30))
  
@@ -227,13 +224,7 @@ def startup():
     alive = True
     
 def main():
-    
     global SPEED, SPACE_RANGE, WIDTH_RANGE, font, SCORE
-
-    
-
-
-    
     
     startup()
     
@@ -292,6 +283,8 @@ def main():
             
         if not alive:
             text(screen, f"You survived {SCORE} seconds!", SCREEN_WIDTH / 2 - (text_width(f"You survived {SCORE} seconds!") / 2), SCREEN_HEIGHT / 2 - (text_height(f"You survived {SCORE} seconds!") / 2), (255, 255, 255))
+            sprites.clear()
+            
         
         # debug
         text(screen, f"Sco: {SCORE}", 5, 5, (255, 255, 255))
@@ -318,6 +311,7 @@ def main():
         pygame.display.flip()
                 
     pygame.quit()
+
 
 if __name__ == '__main__':
     main()
